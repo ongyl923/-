@@ -175,13 +175,12 @@ htm1<!DOCTYPE html>
 const nameStr = prizesData[i].name;
 const charArray = Array.from(nameStr).filter(c => c.trim() !== ""); 
 
-// 循环一个字一个字地垂直画出来
-for (let j = 0; j < charArray.length; j++) {
-    // -135 像素代表从最外圈边缘开始画第一个字
-    // 后面每一个字往下移动 20 像素，字就会整齐地竖直朝向圆心排列
-    ctx.fillText(charArray[j], -ctx.measureText(charArray[j]).width / 2, -135 + (j * 20));
-}
-ctx.restore();
+// 循环让每一个字沿着圆心方向垂直向下排列
+                for (let j = 0; j < charArray.length; j++) {
+                    // -140像素代表从大轮盘的最外圈边缘开始画第一个字
+                    // 每一个字往下错开 22 像素，完美利用纵向长空间
+                    ctx.fillText(charArray[j], -ctx.measureText(charArray[j]).width / 2, -135 + (j * 22));
+                }
             }
         }
 
