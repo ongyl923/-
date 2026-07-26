@@ -1,58 +1,22 @@
-htm1<!DOCTYPE html>
+html<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 节气幸运大转盘 (100%全兼容稳定版) 🎉</title>
+    <title>🎉 节气幸运大转盘 (强制直立竖排) 🎉</title>
     <style>
-        body {
-            background: linear-gradient(135deg, #1f1c2c, #928dab);
-            margin: 0; padding: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; min-height: 100vh;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #fff;
-        }
+        body { background: linear-gradient(135deg, #1f1c2c, #928dab); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; color: #fff; }
         h2 { margin-bottom: 20px; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); letter-spacing: 2px; }
-        .input-box {
-            background: rgba(255, 255, 255, 0.15); padding: 15px 25px;
-            border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center; backdrop-filter: blur(5px);
-        }
-        .input-box input {
-            padding: 10px; border: none; border-radius: 5px; font-size: 16px;
-            width: 180px; text-align: center; outline: none;
-        }
-        .input-box button {
-            padding: 10px 15px; border: none; background: #ff9800; color: white;
-            font-size: 16px; border-radius: 5px; cursor: pointer; margin-left: 10px; font-weight: bold;
-        }
-        .wheel-container {
-            position: relative; width: 340px; height: 340px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 50%;
-            background: #ff9800; padding: 12px; display: none;
-        }
+        .input-box { background: rgba(255, 255, 255, 0.15); padding: 15px 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; backdrop-filter: blur(5px); }
+        .input-box input { padding: 10px; border: none; border-radius: 5px; font-size: 16px; width: 180px; text-align: center; outline: none; }
+        .input-box button { padding: 10px 15px; border: none; background: #ff9800; color: white; font-size: 16px; border-radius: 5px; cursor: pointer; margin-left: 10px; font-weight: bold; }
+        .wheel-container { position: relative; width: 340px; height: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 50%; background: #ff9800; padding: 12px; display: none; }
         #wheelCanvas { background: #2b293a; border-radius: 50%; display: block; }
-        .pointer {
-            position: absolute; width: 70px; height: 70px;
-            top: 50%; left: 50%; margin-top: -35px; margin-left: -35px;
-            background: #ff5722; border-radius: 50%; z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 4px solid #fff;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 16px; font-weight: bold; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        .pointer::after {
-            content: ''; position: absolute; width: 0; height: 0;
-            border-left: 14px solid transparent; border-right: 14px solid transparent;
-            border-bottom: 25px solid #ff5722; top: -22px; left: 17px;
-        }
+        .pointer { position: absolute; width: 70px; height: 70px; top: 50%; left: 50%; margin-top: -35px; margin-left: -35px; background: #ff5722; border-radius: 50%; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 4px solid #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #fff; }
+        .pointer::after { content: ''; position: absolute; width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 25px solid #ff5722; top: -22px; left: 17px; }
         #status-msg { margin-top: 15px; font-weight: bold; color: #ffeb3b; text-align: center; padding: 0 20px; }
-        .mask {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center;
-        }
-        .popup {
-            background: #fff; color: #333; padding: 30px; border-radius: 15px;
-            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 280px;
-        }
+        .mask { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; }
+        .popup { background: #fff; color: #333; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 280px; }
         .popup h3 { margin: 0 0 10px 0; color: #ff9800; font-size: 22px; }
         .popup p { margin: 0 0 20px 0; font-size: 20px; font-weight: bold; color: #1f1c2c; }
         .popup button { background: #ff9800; color: #fff; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; }
@@ -60,11 +24,11 @@ htm1<!DOCTYPE html>
 </head>
 <body>
 
-    <h2>🎉 排位抽签 🎉</h2>
+    <h2>🎉 节气即时抽奖 🎉</h2>
     
     <div class="input-box" id="login-area">
         <input type="text" id="username" placeholder="请输入您的名字" maxlength="10">
-        <button onclick="startApp()">进入抽签</button>
+        <button onclick="startApp()">进入抽奖</button>
     </div>
 
     <div class="wheel-container" id="wheel-wrapper">
@@ -83,11 +47,8 @@ htm1<!DOCTYPE html>
     </div>
 
     <script>
-        const SHEET_API_URL = "https://api.sheetbest.com/sheets/f0580e65-268a-4161-9f3a-bcac2ce0072b";
-
-        let currentUserName = "";
-        let isRotating = false;
-        let startAngle = 0; 
+        const SHEET_API_URL = "https://sheetbest.com";
+        let currentUserName = "", isRotating = false, startAngle = 0; 
 
         let prizesData = [
             { name: '立春 🌸', bg: '#3a364d' }, { name: '雨水 🌧️', bg: '#4a465c' },
@@ -104,139 +65,83 @@ htm1<!DOCTYPE html>
             const nameInput = document.getElementById('username').value.trim();
             if (!nameInput) { alert("请先输入名字！"); return; }
             if (localStorage.getItem('has_drawn')) { alert("您已经参加过抽奖，每个人只能转一次哦！"); return; }
-
             document.getElementById('status-msg').innerText = "正在实时同步云端剩余奖项，请稍候...";
-
             try {
                 const response = await fetch(SHEET_API_URL);
                 const data = await response.json();
-                
                 if (Array.isArray(data) && data.length > 0) {
-                    // ⭐ 超级安全清洗：无脑提取列内容，转化为纯文字，并剔除前后的隐藏空格
                     const drawnList = data.map(row => {
                         const val = row["排位"] || row["prize"];
                         return val ? String(val).trim() : null;
                     }).filter(Boolean);
-                    
-                    // 进行安全的跨设备模糊过滤，彻底避免卡死
                     prizesData = prizesData.filter(item => {
                         return !drawnList.some(drawn => {
-                            // 只要网络表格里包含了转盘的名字（比如包含了“惊蛰”），或者转盘包含了表格名字，就抹去
-                            return drawn.includes(item.name) || item.name.includes(drawn) ||
-                                   drawn.includes(item.name.substring(0, 2)) || item.name.includes(drawn.substring(0, 2));
+                            return drawn.includes(item.name) || item.name.includes(drawn) || drawn.includes(item.name.substring(0, 2)) || item.name.includes(drawn.substring(0, 2));
                         });
                     });
                 }
-            } catch (err) {
-                console.log("云端读取延迟，将使用现有本地奖池继续", err);
-            }
-
-            // 无论网络对齐结果如何，最后强制放行按钮，绝不卡死页面！
+            } catch (err) { console.log(err); }
             currentUserName = nameInput;
             document.getElementById('login-area').style.display = 'none';
             document.getElementById('wheel-wrapper').style.display = 'block';
             document.getElementById('status-msg').innerText = `欢迎你，${currentUserName}！请点击中心开始抽奖`;
-
-            drawWheel(); 
+            forceDrawVerticalWheel();
         }
 
-        function drawWheel() {
+        function forceDrawVerticalWheel() {
             const canvas = document.getElementById("wheelCanvas");
             if (!canvas) return;
             const ctx = canvas.getContext("2d");
             const len = prizesData.length;
-            
             if (len === 0) {
                 document.getElementById('wheel-wrapper').style.display = 'none';
                 document.getElementById('status-msg').innerText = "所有节气已被抽完，活动结束！";
                 return;
             }
-
             const arc = Math.PI * 2 / len; 
             ctx.clearRect(0, 0, 340, 340);
-
             for (let i = 0; i < len; i++) {
                 let angle = startAngle + i * arc;
                 ctx.fillStyle = prizesData[i].bg;
-                
-                ctx.beginPath();
-                ctx.arc(170, 170, 170, angle, angle + arc, false);
-                ctx.lineTo(170, 170);
-                ctx.fill();
-
+                ctx.beginPath(); ctx.arc(170, 170, 170, angle, angle + arc, false); ctx.lineTo(170, 170); ctx.fill();
                 ctx.save();
-                ctx.fillStyle = "#ffeb3b";
-                ctx.font = 'bold 18px sans-serif';
-                ctx.translate(170 + Math.cos(angle + arc / 2) * 110, 170 + Math.sin(angle + arc / 2) * 110);
-                ctx.rotate(angle + arc / 2 + Math.PI / 2);
-                ctx.fillText(prizesData[i].name, -ctx.measureText(prizesData[i].name).width / 2, 0);
-                ctx.restore();
-                // 把节气名字（例如 "立春 🌸"）拆成单个字变成列表：["立", "春", "🌸"]
-const nameStr = prizesData[i].name;
-const charArray = Array.from(nameStr).filter(c => c.trim() !== ""); 
-
-// 循环让每一个字沿着圆心方向垂直向下排列
+                ctx.fillStyle = "#ffeb3b"; ctx.font = 'bold 16px sans-serif'; // ⭐ 16px加粗大字
+                ctx.translate(170, 170); ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                const charArray = Array.from(prizesData[i].name).filter(c => c.trim() !== "");
                 for (let j = 0; j < charArray.length; j++) {
-                    // -140像素代表从大轮盘的最外圈边缘开始画第一个字
-                    // 每一个字往下错开 22 像素，完美利用纵向长空间
+                    // ⭐ 强制每个字垂直向圆心直立排布
                     ctx.fillText(charArray[j], -ctx.measureText(charArray[j]).width / 2, -135 + (j * 22));
                 }
+                ctx.restore();
             }
         }
 
         function spinWheel() {
             if (isRotating) return;
             isRotating = true;
-
             const len = prizesData.length;
             const targetIndex = Math.floor(Math.random() * len); 
-
             const arc = 360 / len;
-            const targetAngle = 270 - (targetIndex * arc + arc / 2);
-            const totalRotation = 360 * 5 + targetAngle; 
-
-            let currentRotation = 0;
-            const duration = 3000; 
-            const startTime = performance.now();
-
+            const totalRotation = 360 * 5 + (270 - (targetIndex * arc + arc / 2)); 
+            let currentRotation = 0, duration = 3000, startTime = performance.now();
             function animate(now) {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                const easeOutValue = 1 - Math.pow(1 - progress, 3);
-                currentRotation = easeOutValue * totalRotation;
-                
+                const progress = Math.min((now - startTime) / duration, 1);
+                currentRotation = (1 - Math.pow(1 - progress, 3)) * totalRotation;
                 startAngle = (currentRotation * Math.PI) / 180;
-                drawWheel();
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
+                forceDrawVerticalWheel();
+                if (progress < 1) { requestAnimationFrame(animate); } else {
                     isRotating = false;
                     const winPrizeName = prizesData[targetIndex].name;
-
                     localStorage.setItem('has_drawn', 'true'); 
                     document.getElementById('prize-text').innerText = winPrizeName;
                     document.getElementById('mask').style.display = 'flex';
-
-                    uploadDataToSheet(currentUserName, winPrizeName);
+                    fetch(SHEET_API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ "姓名": currentUserName, "排位": winPrizeName }) }).catch(err => console.log(err));
                 }
             }
             requestAnimationFrame(animate);
         }
 
-        function uploadDataToSheet(name, prize) {
-            fetch(SHEET_API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "姓名": name, "排位": prize })
-            }).catch(err => console.log(err));
-        }
-
-        function closePopup() {
-            document.getElementById('mask').style.display = 'none';
-            location.reload(); 
-        }
+        function closePopup() { document.getElementById('mask').style.display = 'none'; location.reload(); }
     </script>
 </body>
 </html>
