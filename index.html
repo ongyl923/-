@@ -229,6 +229,27 @@ html<!DOCTYPE html>
             document.getElementById('mask').style.display = 'none';
             location.reload(); 
         }
+        const SHEET_API_URL = "https://api.sheetbest.com/sheets/f0580e65-268a-4161-9f3a-bcac2ce0072b";
+const originalStartApp = startApp; 
+startApp = async function() {
+    const nameInput = document.getElementById('username').value.trim();
+    if (!nameInput) { alert("请先输入名字！"); return; }
+    if (localStorage.getItem('has_drawn')) { alert("您已经参加过抽奖，每个人只能转一次哦！"); return; }
+    const statusMsg = document.getElementById('status-msg');
+    if (statusMsg) statusMsg.innerText = "正在实时同步云端剩余奖项，请稍候...";
+    try {
+        const response = await fetch(SHEET_API_URL);
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+            const drawnList = data.map(row => row["排位"] || row["prize"]).filter(Boolean).map(val => String(val).replace(/[^\u4e00-\u9fa5]/g, '').trim());
+            prizesData = prizesData.filter(item => {
+                const wheelPureName = item.name.replace(/[^\u4e00-\u9fa5]/g, '').trim();
+                return !drawnList.includes(wheelPureName);
+            });
+        }
+    } catch (err) { console.log(err); }
+    originalStartApp();
+};
     </script>
 </body>
 </html>
