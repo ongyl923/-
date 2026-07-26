@@ -24,11 +24,11 @@ html<!DOCTYPE html>
 </head>
 <body>
 
-    <h2>🎉 节气即时抽奖 🎉</h2>
+    <h2>🎉 排位抽签 🎉</h2>
     
     <div class="input-box" id="login-area">
         <input type="text" id="username" placeholder="请输入您的名字" maxlength="10">
-        <button onclick="startApp()">进入抽奖</button>
+        <button onclick="startApp()">进入抽签</button>
     </div>
 
     <div class="wheel-container" id="wheel-wrapper">
@@ -47,7 +47,7 @@ html<!DOCTYPE html>
     </div>
 
     <script>
-        const SHEET_API_URL = "https://sheetbest.com";
+        const SHEET_API_URL = "https://api.sheetbest.com/sheets/f0580e65-268a-4161-9f3a-bcac2ce0072b";
         let currentUserName = "", isRotating = false, startAngle = 0; 
 
         let prizesData = [
@@ -105,8 +105,10 @@ html<!DOCTYPE html>
                 ctx.fillStyle = prizesData[i].bg;
                 ctx.beginPath(); ctx.arc(170, 170, 170, angle, angle + arc, false); ctx.lineTo(170, 170); ctx.fill();
                 ctx.save();
-                ctx.fillStyle = "#ffeb3b"; ctx.font = 'bold 16px sans-serif'; // ⭐ 16px加粗大字
-                ctx.translate(170, 170); ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                ctx.fillStyle = "#ffeb3b"; 
+                ctx.font = 'bold 18px sans-serif'; // ⭐ 16px加粗大字
+                ctx.translate(170, 170); 
+                ctx.rotate(angle + arc / 2 + Math.PI / 2);
                 const charArray = Array.from(prizesData[i].name).filter(c => c.trim() !== "");
                 for (let j = 0; j < charArray.length; j++) {
                     // ⭐ 强制每个字垂直向圆心直立排布
