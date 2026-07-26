@@ -3,7 +3,7 @@ html<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 节气幸运大转盘 (最终不翻车版) 🎉</title>
+    <title>🎉 节气幸运大转盘 (100%全兼容稳定版) 🎉</title>
     <style>
         body {
             background: linear-gradient(135deg, #1f1c2c, #928dab);
@@ -60,15 +60,13 @@ html<!DOCTYPE html>
 </head>
 <body>
 
-    <h2>🎉 节气即时抽奖 🎉</h2>
+    <h2>🎉 排位抽签 🎉</h2>
     
-    <!-- 姓名输入框 -->
     <div class="input-box" id="login-area">
         <input type="text" id="username" placeholder="请输入您的名字" maxlength="10">
-        <button onclick="startApp()">进入抽奖</button>
+        <button onclick="startApp()">进入抽签</button>
     </div>
 
-    <!-- 转盘整体结构 -->
     <div class="wheel-container" id="wheel-wrapper">
         <canvas id="wheelCanvas" width="340" height="340"></canvas>
         <div class="pointer" id="spin-btn" onclick="spinWheel()">抽奖</div>
@@ -76,7 +74,6 @@ html<!DOCTYPE html>
 
     <p id="status-msg"></p>
 
-    <!-- 中奖弹窗 -->
     <div class="mask" id="mask">
         <div class="popup">
             <h3>🎊 恭喜抽中 🎊</h3>
@@ -86,14 +83,12 @@ html<!DOCTYPE html>
     </div>
 
     <script>
-        // 🌟 已为您精准嵌入您刚提供的正确 SheetBest 网址 🌟
         const SHEET_API_URL = "https://sheetbest.com";
 
         let currentUserName = "";
         let isRotating = false;
         let startAngle = 0; 
 
-        // 初始的 15 个完整节气
         let prizesData = [
             { name: '立春 🌸', bg: '#3a364d' }, { name: '雨水 🌧️', bg: '#4a465c' },
             { name: '惊蛰 ⚡', bg: '#3a364d' }, { name: '春分 ⚖️', bg: '#4a465c' },
@@ -105,7 +100,6 @@ html<!DOCTYPE html>
             { name: '白露 💧', bg: '#3a364d' }
         ];
 
-        // 核心同步拦截：点击“进入抽奖”时，必须强制等 0.3 秒从云端精准核对并剔除数据，绝不留时差漏洞
         async function startApp() {
             const nameInput = document.getElementById('username').value.trim();
             if (!nameInput) { alert("请先输入名字！"); return; }
@@ -114,27 +108,30 @@ html<!DOCTYPE html>
             document.getElementById('status-msg').innerText = "正在实时同步云端剩余奖项，请稍候...";
 
             try {
-                // 强制等待云端最新的数据返回
                 const response = await fetch(SHEET_API_URL);
                 const data = await response.json();
                 
                 if (Array.isArray(data) && data.length > 0) {
-                    // ⭐ 重点：只精准获取表格中“排位”这一列的所有已被抽中的名字，彻底清洗掉所有空格和特殊符号，不碰姓名列
-                    const drawnList = data.map(row => row["排位"] || row["prize"])
-                                          .filter(Boolean)
-                                          .map(val => String(val).replace(/[^\u4e00-\u9fa5]/g, '').trim());
+                    // ⭐ 超级安全清洗：无脑提取列内容，转化为纯文字，并剔除前后的隐藏空格
+                    const drawnList = data.map(row => {
+                        const val = row["排位"] || row["prize"];
+                        return val ? String(val).trim() : null;
+                    }).filter(Boolean);
                     
-                    // 用提取出来的纯中文字眼，从初始的 15 个节气里精准剔除
+                    // 进行安全的跨设备模糊过滤，彻底避免卡死
                     prizesData = prizesData.filter(item => {
-                        const wheelPureName = item.name.replace(/[^\u4e00-\u9fa5]/g, '').trim();
-                        return !drawnList.includes(wheelPureName);
+                        return !drawnList.some(drawn => {
+                            // 只要网络表格里包含了转盘的名字（比如包含了“惊蛰”），或者转盘包含了表格名字，就抹去
+                            return drawn.includes(item.name) || item.name.includes(drawn) ||
+                                   drawn.includes(item.name.substring(0, 2)) || item.name.includes(drawn.substring(0, 2));
+                        });
                     });
                 }
             } catch (err) {
-                console.log("云端读取延迟", err);
+                console.log("云端读取延迟，将使用现有本地奖池继续", err);
             }
 
-            // 云端对齐剔除彻底闭环，放行大转盘！
+            // 无论网络对齐结果如何，最后强制放行按钮，绝不卡死页面！
             currentUserName = nameInput;
             document.getElementById('login-area').style.display = 'none';
             document.getElementById('wheel-wrapper').style.display = 'block';
@@ -143,7 +140,6 @@ html<!DOCTYPE html>
             drawWheel(); 
         }
 
-        // 底层原生 Canvas 画转盘
         function drawWheel() {
             const canvas = document.getElementById("wheelCanvas");
             if (!canvas) return;
@@ -178,7 +174,6 @@ html<!DOCTYPE html>
             }
         }
 
-        // 指针旋转控制
         function spinWheel() {
             if (isRotating) return;
             isRotating = true;
@@ -210,25 +205,28 @@ html<!DOCTYPE html>
                     isRotating = false;
                     const winPrizeName = prizesData[targetIndex].name;
 
-                    localStorage.setItem('has_drawn', 'true'); // 本地锁定该手机防作弊
+                    localStorage.setItem('has_drawn', 'true'); 
                     document.getElementById('prize-text').innerText = winPrizeName;
                     document.getElementById('mask').style.display = 'flex';
 
-                    // 实时静默秒传数据至你的谷歌表格
                     uploadDataToSheet(currentUserName, winPrizeName);
                 }
             }
             requestAnimationFrame(animate);
         }
 
-        // 上传到表格函数
         function uploadDataToSheet(name, prize) {
             fetch(SHEET_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "姓名": name, "排位": prize }) // 完美对齐你的列名
+                body: JSON.stringify({ "姓名": name, "排位": prize })
             }).catch(err => console.log(err));
         }
 
         function closePopup() {
-            document.getElementById('mask').style.display = 'none';location.reload();}
+            document.getElementById('mask').style.display = 'none';
+            location.reload(); 
+        }
+    </script>
+</body>
+</html>
