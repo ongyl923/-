@@ -3,7 +3,7 @@ html<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 节气幸运大转盘 (全网同步不翻车版) 🎉</title>
+    <title>🎉 节气幸运大转盘 (百炼成钢版) 🎉</title>
     <style>
         body {
             background: linear-gradient(135deg, #1f1c2c, #928dab);
@@ -44,7 +44,7 @@ html<!DOCTYPE html>
             border-left: 14px solid transparent; border-right: 14px solid transparent;
             border-bottom: 25px solid #ff5722; top: -22px; left: 17px;
         }
-        #status-msg { margin-top: 15px; font-weight: bold; color: #ffeb3b; text-align: center; }
+        #status-msg { margin-top: 15px; font-weight: bold; color: #ffeb3b; text-align: center; padding: 0 20px; }
         .mask {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center;
@@ -83,14 +83,13 @@ html<!DOCTYPE html>
     </div>
 
     <script>
-        // 1. 这里是唯一的、最完美的云端表格链接位置
         const SHEET_API_URL = "https://sheetbest.com";
 
         let currentUserName = "";
         let isRotating = false;
         let startAngle = 0; 
 
-        // 完整的 15 个初始节气
+        // 初始 15 个全节气列表
         let prizesData = [
             { name: '立春 🌸', bg: '#3a364d' }, { name: '雨水 🌧️', bg: '#4a465c' },
             { name: '惊蛰 ⚡', bg: '#3a364d' }, { name: '春分 ⚖️', bg: '#4a465c' },
@@ -102,37 +101,46 @@ html<!DOCTYPE html>
             { name: '白露 💧', bg: '#3a364d' }
         ];
 
-        // 2. 网页一打开，雷打不动立刻先去联网对齐数据
-        window.addEventListener('DOMContentLoaded', () => {
-            fetch(SHEET_API_URL).then(res => res.json()).then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    // 只拿表格里“排位”这一列的数据
-                    const drawnList = data.map(row => row["排位"]).filter(Boolean).map(val => String(val).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim());
-                    
-                    // 用云端表格里的名字，直接把转盘列表清洗干净
-                    prizesData = prizesData.filter(item => {
-                        const wheelPureName = item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-                        return !drawnList.includes(wheelPureName);
-                    });
-                }
-            }).catch(err => console.log("云端连接稍有延迟", err));
-        });
-
-        // 3. 点击进入抽奖时，才去动态抓取 Canvas 的上下文并画图（彻底杜绝空白画不出来的问题）
-        function startApp() {
+        // 🌟 核心升级：点击按钮时，用 async/await 强制卡死时间差，拿完云端数据才允许画大转盘
+        async function startApp() {
             const nameInput = document.getElementById('username').value.trim();
             if (!nameInput) { alert("请先输入名字！"); return; }
             if (localStorage.getItem('has_drawn')) { alert("您已经参加过抽奖，每个人只能转一次哦！"); return; }
 
+            // 1. 先把按钮文字改掉，防止用户重复点击，同时提示用户
+            document.getElementById('status-msg').innerText = "正在实时对齐云端剩余奖项，请稍候...";
+
+            try {
+                // 2. 强制在这里发起联网拦截，必须等到数据完全返回
+                const response = await fetch(SHEET_API_URL);
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    // 精准拿取“排位”列中所有纯中文名字
+                    const drawnList = data.map(row => row["排位"] || row["prize"])
+                                          .filter(Boolean)
+                                          .map(val => String(val).replace(/[^\u4e00-\u9fa5]/g, '').trim());
+                    
+                    // 用云端表格里的最核心中文，严格清洗初始的 15 个节气
+                    prizesData = prizesData.filter(item => {
+                        const wheelPureName = item.name.replace(/[^\u4e00-\u9fa5]/g, '').trim();
+                        return !drawnList.includes(wheelPureName);
+                    });
+                }
+            } catch (err) {
+                console.log("云端同步略有延迟", err);
+            }
+
+            // 3. 网络数据对齐清洗完毕，彻底排除时间差，现在放行转盘！
             currentUserName = nameInput;
             document.getElementById('login-area').style.display = 'none';
             document.getElementById('wheel-wrapper').style.display = 'block';
             document.getElementById('status-msg').innerText = `欢迎你，${currentUserName}！请点击中心开始抽奖`;
 
-            drawWheel(); // 此时数据已经洗干净了，直接开画！
+            drawWheel(); 
         }
 
-        // 画大转盘的核心功能
+        // 底层画图
         function drawWheel() {
             const canvas = document.getElementById("wheelCanvas");
             if (!canvas) return;
@@ -167,7 +175,7 @@ html<!DOCTYPE html>
             }
         }
 
-        // 点击抽奖
+        // 旋转动画
         function spinWheel() {
             if (isRotating) return;
             isRotating = true;
@@ -199,11 +207,10 @@ html<!DOCTYPE html>
                     isRotating = false;
                     const winPrizeName = prizesData[targetIndex].name;
 
-                    localStorage.setItem('has_drawn', 'true'); // 本地锁定防作弊
+                    localStorage.setItem('has_drawn', 'true'); 
                     document.getElementById('prize-text').innerText = winPrizeName;
                     document.getElementById('mask').style.display = 'flex';
 
-                    // 秒传到云端表格
                     uploadDataToSheet(currentUserName, winPrizeName);
                 }
             }
