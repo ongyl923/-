@@ -166,7 +166,7 @@ html<!DOCTYPE html>
 
                 ctx.save();
                 ctx.fillStyle = "#ffeb3b";
-                ctx.font = 'bold 18px sans-serif';
+                ctx.font = 'bold 25px sans-serif';
                 ctx.translate(170 + Math.cos(angle + arc / 2) * 110, 170 + Math.sin(angle + arc / 2) * 110);
                 ctx.rotate(angle + arc / 2 + Math.PI / 2);
                 ctx.fillText(prizesData[i].name, -ctx.measureText(prizesData[i].name).width / 2, 0);
