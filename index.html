@@ -75,18 +75,18 @@ html<!DOCTYPE html>
 </head>
 <body>
 
-    <h2>🎉 节气即时抽奖 🎉</h2>
+    <h2>🎉 排位抽签 🎉</h2>
     
     <!-- 姓名输入框 -->
     <div class="input-box" id="login-area">
         <input type="text" id="username" placeholder="请输入您的名字" maxlength="10">
-        <button onclick="startApp()">进入抽奖</button>
+        <button onclick="startApp()">进入抽签</button>
     </div>
 
     <!-- 转盘整体结构 -->
     <div class="wheel-container" id="wheel-wrapper">
         <canvas id="wheelCanvas" width="340" height="340"></canvas>
-        <div class="pointer" id="spin-btn" onclick="spinWheel()">抽奖</div>
+        <div class="pointer" id="spin-btn" onclick="spinWheel()">抽签</div>
     </div>
 
     <p id="status-msg"></p>
@@ -128,7 +128,7 @@ html<!DOCTYPE html>
     fetch(SHEET_API_URL).then(res => res.json()).then(data => {
         if (Array.isArray(data) && data.length > 0) {
             // 获取表格中“抽中节气”一列的所有中奖名单
-            const drawnList = data.map(row => row["抽中节气"] || row["prize"]).filter(Boolean);
+            const drawnList = data.map(row => row["排位"] || row["prize"]).filter(Boolean);
             
             // 核心对齐：用云端表格的中奖名单，去过滤你的原始 15 个节气
             prizesData = prizesData.filter(item => {
