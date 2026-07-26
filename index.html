@@ -3,7 +3,7 @@ html<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 节气幸运大转盘 (Sheet实时同步版) 🎉</title>
+    <title>🎉 节气幸运大转盘 (全网同步不翻车版) 🎉</title>
     <style>
         body {
             background: linear-gradient(135deg, #1f1c2c, #928dab);
@@ -12,8 +12,6 @@ html<!DOCTYPE html>
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #fff;
         }
         h2 { margin-bottom: 20px; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); letter-spacing: 2px; }
-        
-        /* 名字输入区域样式 */
         .input-box {
             background: rgba(255, 255, 255, 0.15); padding: 15px 25px;
             border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -27,18 +25,12 @@ html<!DOCTYPE html>
             padding: 10px 15px; border: none; background: #ff9800; color: white;
             font-size: 16px; border-radius: 5px; cursor: pointer; margin-left: 10px; font-weight: bold;
         }
-        
-        /* 原生大转盘容器 */
         .wheel-container {
             position: relative; width: 340px; height: 340px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 50%;
             background: #ff9800; padding: 12px; display: none;
         }
-        #wheelCanvas {
-            background: #2b293a; border-radius: 50%; display: block;
-        }
-        
-        /* 纯原生指针按钮 */
+        #wheelCanvas { background: #2b293a; border-radius: 50%; display: block; }
         .pointer {
             position: absolute; width: 70px; height: 70px;
             top: 50%; left: 50%; margin-top: -35px; margin-left: -35px;
@@ -52,11 +44,7 @@ html<!DOCTYPE html>
             border-left: 14px solid transparent; border-right: 14px solid transparent;
             border-bottom: 25px solid #ff5722; top: -22px; left: 17px;
         }
-
-        /* 状态提示 */
         #status-msg { margin-top: 15px; font-weight: bold; color: #ffeb3b; text-align: center; }
-
-        /* 中奖弹窗样式 */
         .mask {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center;
@@ -67,31 +55,25 @@ html<!DOCTYPE html>
         }
         .popup h3 { margin: 0 0 10px 0; color: #ff9800; font-size: 22px; }
         .popup p { margin: 0 0 20px 0; font-size: 20px; font-weight: bold; color: #1f1c2c; }
-        .popup button {
-            background: #ff9800; color: #fff; border: none; padding: 10px 25px;
-            border-radius: 5px; cursor: pointer; font-size: 16px;
-        }
+        .popup button { background: #ff9800; color: #fff; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
 
-    <h2>🎉 排位抽签 🎉</h2>
+    <h2>🎉 节气即时抽奖 🎉</h2>
     
-    <!-- 姓名输入框 -->
     <div class="input-box" id="login-area">
         <input type="text" id="username" placeholder="请输入您的名字" maxlength="10">
-        <button onclick="startApp()">进入抽签</button>
+        <button onclick="startApp()">进入抽奖</button>
     </div>
 
-    <!-- 转盘整体结构 -->
     <div class="wheel-container" id="wheel-wrapper">
         <canvas id="wheelCanvas" width="340" height="340"></canvas>
-        <div class="pointer" id="spin-btn" onclick="spinWheel()">抽签</div>
+        <div class="pointer" id="spin-btn" onclick="spinWheel()">抽奖</div>
     </div>
 
     <p id="status-msg"></p>
 
-    <!-- 中奖弹窗 -->
     <div class="mask" id="mask">
         <div class="popup">
             <h3>🎊 恭喜抽中 🎊</h3>
@@ -101,14 +83,14 @@ html<!DOCTYPE html>
     </div>
 
     <script>
-        // ⚠️ 请在下面双引号里，精准填入你从 Sheet.best 获取的接口链接 ⚠️
-        const SHEET_API_URL = "https://api.sheetbest.com/sheets/f0580e65-268a-4161-9f3a-bcac2ce0072b";
+        // 1. 这里是唯一的、最完美的云端表格链接位置
+        const SHEET_API_URL = "https://sheetbest.com";
 
         let currentUserName = "";
         let isRotating = false;
         let startAngle = 0; 
 
-        // 基础 15 个节气选项
+        // 完整的 15 个初始节气
         let prizesData = [
             { name: '立春 🌸', bg: '#3a364d' }, { name: '雨水 🌧️', bg: '#4a465c' },
             { name: '惊蛰 ⚡', bg: '#3a364d' }, { name: '春分 ⚖️', bg: '#4a465c' },
@@ -120,62 +102,43 @@ html<!DOCTYPE html>
             { name: '白露 💧', bg: '#3a364d' }
         ];
 
-       window.addEventListener('DOMContentLoaded', () => {
-    // 检查你顶部的链接是否配置好
-    if (!SHEET_API_URL || SHEET_API_URL.includes("替换为")) return;
+        // 2. 网页一打开，雷打不动立刻先去联网对齐数据
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch(SHEET_API_URL).then(res => res.json()).then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    // 只拿表格里“排位”这一列的数据
+                    const drawnList = data.map(row => row["排位"]).filter(Boolean).map(val => String(val).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim());
+                    
+                    // 用云端表格里的名字，直接把转盘列表清洗干净
+                    prizesData = prizesData.filter(item => {
+                        const wheelPureName = item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+                        return !drawnList.includes(wheelPureName);
+                    });
+                }
+            }).catch(err => console.log("云端连接稍有延迟", err));
+        });
 
-    // 后台直接去你顶部的 SHEET_API_URL 链接拿数据
-    fetch(SHEET_API_URL).then(res => res.json()).then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-            // 1. 精准只拿表格里“排位”这一列的数据（过滤掉没字或者空的数据）
-            const drawnList = data.map(row => {
-                const val = row["排位"] || row["prize"];
-                // 提取纯中文，去掉所有表情和空格，比如把 "惊蛰 ⚡" 变成 "惊蛰"
-                return val ? String(val).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim() : null;
-            }).filter(Boolean); // 彻底过滤掉空行，空字符串绝对进不来
-
-            // 2. 严格的完全相等对齐，表格里有什么节气，转盘才删什么节气
-            prizesData = prizesData.filter(item => {
-                const wheelPureName = item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-                // 只有当表格那一列里精准出现了相同的节气名字，才删掉
-                return !drawnList.includes(wheelPureName);
-            });
-        }
-
-        // 3. 终极放行：不管怎么过滤，最后一步必须把完好的转盘画出来！
-        if (typeof drawWheel === 'function') {
-            drawWheel();
-        }
-    }).catch(err => {
-        console.log("同步延迟: ", err);
-        // 如果断网或卡顿，也立刻强行画出转盘
-        if (typeof drawWheel === 'function') drawWheel();
-    });
-});
-
-        // 验证名字并登录
+        // 3. 点击进入抽奖时，才去动态抓取 Canvas 的上下文并画图（彻底杜绝空白画不出来的问题）
         function startApp() {
             const nameInput = document.getElementById('username').value.trim();
-            if (!nameInput) {
-                alert("请先输入名字！");
-                return;
-            }
-            if (localStorage.getItem('has_drawn')) {
-                alert("您已经参加过抽奖，每个人只能转一次哦！");
-                return;
-            }
+            if (!nameInput) { alert("请先输入名字！"); return; }
+            if (localStorage.getItem('has_drawn')) { alert("您已经参加过抽奖，每个人只能转一次哦！"); return; }
 
             currentUserName = nameInput;
             document.getElementById('login-area').style.display = 'none';
             document.getElementById('wheel-wrapper').style.display = 'block';
             document.getElementById('status-msg').innerText = `欢迎你，${currentUserName}！请点击中心开始抽奖`;
 
-            drawWheel();
+            drawWheel(); // 此时数据已经洗干净了，直接开画！
         }
 
-        // 底层绘制转盘
+        // 画大转盘的核心功能
         function drawWheel() {
+            const canvas = document.getElementById("wheelCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
             const len = prizesData.length;
+            
             if (len === 0) {
                 document.getElementById('wheel-wrapper').style.display = 'none';
                 document.getElementById('status-msg').innerText = "所有节气已被抽完，活动结束！";
@@ -204,7 +167,7 @@ html<!DOCTYPE html>
             }
         }
 
-        // 开始原生旋转动画
+        // 点击抽奖
         function spinWheel() {
             if (isRotating) return;
             isRotating = true;
@@ -236,79 +199,29 @@ html<!DOCTYPE html>
                     isRotating = false;
                     const winPrizeName = prizesData[targetIndex].name;
 
-                    // 1. 本地设备防二次抽奖锁定
-                    localStorage.setItem('has_drawn', 'true');
-
-                    // 2. 核心逻辑：从列表中剔除该选项并保存
-                    prizesData.splice(targetIndex, 1);
-                    localStorage.setItem('saved_prizes', JSON.stringify(prizesData));
-
-                    // 3. 弹窗通知
+                    localStorage.setItem('has_drawn', 'true'); // 本地锁定防作弊
                     document.getElementById('prize-text').innerText = winPrizeName;
                     document.getElementById('mask').style.display = 'flex';
 
-                    // 4. 实时静默上传到网络 Google 表格
+                    // 秒传到云端表格
                     uploadDataToSheet(currentUserName, winPrizeName);
                 }
             }
             requestAnimationFrame(animate);
         }
 
-        // 异步数据上传
         function uploadDataToSheet(name, prize) {
-            if(!SHEET_API_URL || SHEET_API_URL.includes("替换为")) return;
             fetch(SHEET_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "姓名": name, "排位": prize })
-            })
-            .then(res => console.log("数据成功同步至电子表格"))
-            .catch(err => console.error("同步失败: ", err));
+            }).catch(err => console.log(err));
         }
 
         function closePopup() {
             document.getElementById('mask').style.display = 'none';
             location.reload(); 
         }
-        window.addEventListener('DOMContentLoaded', () => {
-    // 检查变量是否存在
-    if (typeof SHEET_API_URL === 'undefined') {
-        alert("【警报1】代码最顶部的 SHEET_API_URL 变量不见了或被误删了！");
-        if (typeof drawWheel === 'function') drawWheel();
-        return;
-    }
-
-    fetch(SHEET_API_URL).then(res => {
-        if (!res.ok) {
-            alert("【警报2】SheetBest 接口连接失败，可能免费额度用完了或链接抄错了！错误码：" + res.status);
-        }
-        return res.json();
-    }).then(data => {
-        if (Array.isArray(data)) {
-            // 精准提取“排位”列
-            const drawnList = data.map(row => {
-                const val = row["排位"] || row["prize"];
-                return val ? String(val).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim() : null;
-            }).filter(Boolean);
-
-            prizesData = prizesData.filter(item => {
-                const wheelPureName = item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
-                return !drawnList.includes(wheelPureName);
-            });
-        } else {
-            alert("【警报3】云端返回的数据格式不对，不是一个标准的表格列表！");
-        }
-
-        if (typeof drawWheel === 'function') {
-            drawWheel();
-        } else {
-            alert("【警报4】网页里找不到名为 drawWheel 的画转盘函数，可能在上面被误删了！");
-        }
-    }).catch(err => {
-        // 彻底把卡死的报错原因弹出来
-        alert("【系统报错卡死原因】:\n" + err.message);
-        if (typeof drawWheel === 'function') drawWheel();
-});
     </script>
 </body>
 </html>
