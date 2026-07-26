@@ -1,0 +1,152 @@
+html<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 节气幸运轮盘 (测试版) ⚡</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            margin: 0; padding: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; min-height: 100vh;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #fff;
+        }
+        h2 { margin-bottom: 20px; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); letter-spacing: 2px; }
+        #my-lucky { box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 50%; }
+        .input-box {
+            background: rgba(255, 255, 255, 0.15); padding: 15px 25px;
+            border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center; backdrop-filter: blur(5px);
+        }
+        .input-box input {
+            padding: 10px; border: none; border-radius: 5px; font-size: 16px;
+            width: 180px; text-align: center; outline: none;
+        }
+        .input-box button {
+            padding: 10px 15px; border: none; background: #ff9800; color: white;
+            font-size: 16px; border-radius: 5px; cursor: pointer; margin-left: 10px; font-weight: bold;
+        }
+        .mask {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center;
+        }
+        .popup {
+            background: #fff; color: #333; padding: 30px; border-radius: 15px;
+            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 280px;
+        }
+        .popup h3 { margin: 0 0 10px 0; color: #ff9800; font-size: 22px; }
+        .popup p { margin: 0 0 20px 0; font-size: 18px; font-weight: bold; color: #1f1c2c; }
+        .popup button {
+            background: #ff9800; color: #fff; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🎉 节气即时抽奖 (测试版) 🎉</h2>
+    
+    <div class="input-box" id="login-area">
+        <input type="text" id="username" placeholder="请输入您的名字" maxlength="10">
+        <button onclick="startApp()">进入抽奖</button>
+    </div>
+
+    <div id="my-lucky" style="display: none;"></div>
+    <p id="status-msg" style="margin-top: 15px; font-weight: bold; color: #ffeb3b;"></p>
+
+    <div class="mask" id="mask">
+        <div class="popup">
+            <h3 id="pop-title">🎊 恭喜抽中 🎊</h3>
+            <p id="prize-text">节气名称</p>
+            <button onclick="closePopup()">确定</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUserName = "";
+        let myLucky = null;
+
+        let prizesData = [
+            { name: '立春 🌸', bg: '#3a364d' }, { name: '雨水 🌧️', bg: '#4a465c' },
+            { name: '惊蛰 ⚡', bg: '#3a364d' }, { name: '春分 ⚖️', bg: '#4a465c' },
+            { name: '清明 🍃', bg: '#3a364d' }, { name: '谷雨 🌾', bg: '#4a465c' },
+            { name: '立夏 ☀️', bg: '#3a364d' }, { name: '小满 🥖', bg: '#4a465c' },
+            { name: '芒种 🌾', bg: '#3a364d' }, { name: '夏至 🌻', bg: '#4a465c' },
+            { name: '小暑 🥵', bg: '#3a364d' }, { name: '大暑 🔥', bg: '#4a465c' },
+            { name: '立秋 🍁', bg: '#3a364d' }, { name: '处暑 🍂', bg: '#4a465c' },
+            { name: '白露 💧', bg: '#3a364d' }
+        ];
+
+        if (localStorage.getItem('saved_prizes')) {
+            prizesData = JSON.parse(localStorage.getItem('saved_prizes'));
+        }
+
+        function startApp() {
+            const nameInput = document.getElementById('username').value.trim();
+            if (!nameInput) {
+                alert("请先输入名字！");
+                return;
+            }
+            if (localStorage.getItem('has_drawn')) {
+                alert("您已经参加过抽奖，每个人只能转一次哦！");
+                return;
+            }
+            currentUserName = nameInput;
+            document.getElementById('login-area').style.display = 'none';
+            document.getElementById('my-lucky').style.display = 'block';
+            document.getElementById('status-msg').innerText = `欢迎你，${currentUserName}！请点击中心开始抽奖`;
+            initWheel();
+        }
+
+        function initWheel() {
+            if (prizesData.length === 0) {
+                document.getElementById('my-lucky').style.display = 'none';
+                document.getElementById('status-msg').innerText = "所有节气已被抽完，活动结束！";
+                return;
+            }
+
+            const prizes = prizesData.map(item => ({
+                background: item.bg,
+                fonts: [{ text: item.name, top: '12%', fontColor: '#ffeb3b', fontSize: '12px', fontWeight: 'bold' }]
+            }));
+
+            myLucky = new LuckyCanvas.LuckyWheel('#my-lucky', {
+                width: '340px', height: '340px',
+                blocks: [
+                    { padding: '13px', background: '#ff9800' },
+                    { padding: '5px', background: '#2b293a' }
+                ],
+                prizes: prizes,
+                buttons: [
+                    { radius: '40px', background: '#ff5722' },
+                    { radius: '35px', background: '#ff9800' },
+                    { radius: '30px', background: '#fff', fonts: [{ text: '抽奖', top: '-11px', fontSize: '16px', fontWeight: 'bold', fontColor: '#ff5722' }] }
+                ],
+                start: function() {
+                    myLucky.play();
+                    setTimeout(() => {
+                        const index = Math.floor(Math.random() * prizesData.length);
+                        myLucky.stop(index);
+                    }, 2000); 
+                },
+                end: function(prize) {
+                    const luckyIndex = prizesData.findIndex(item => item.name === prize.fonts.text);
+                    const winPrizeName = prizesData[luckyIndex].name;
+
+                    localStorage.setItem('has_drawn', 'true');
+                    prizesData.splice(luckyIndex, 1);
+                    localStorage.setItem('saved_prizes', JSON.stringify(prizesData));
+
+                    document.getElementById('prize-text').innerText = winPrizeName;
+                    document.getElementById('mask').style.display = 'flex';
+                }
+            });
+        }
+
+        function closePopup() {
+            document.getElementById('mask').style.display = 'none';
+            location.reload();
+        }
+    </script>
+</body>
+</html>
