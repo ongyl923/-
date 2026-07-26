@@ -120,13 +120,26 @@ html<!DOCTYPE html>
             { name: '白露 💧', bg: '#3a364d' }
         ];
 
-        // 自动读取被剔除后的本地缓存列表
-        if (localStorage.getItem('saved_prizes')) {
-            prizesData = JSON.parse(localStorage.getItem('saved_prizes'));
-        }
+       window.addEventListener('DOMContentLoaded', () => {
+    // 检查你顶部的链接是否配置好
+    if (!SHEET_API_URL || SHEET_API_URL.includes("替换为")) return;
 
-        const canvas = document.getElementById("wheelCanvas");
-        const ctx = canvas.getContext("2d");
+    // 后台直接去你顶部的 SHEET_API_URL 链接拿数据
+    fetch(SHEET_API_URL).then(res => res.json()).then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+            // 获取表格中“抽中节气”一列的所有中奖名单
+            const drawnList = data.map(row => row["抽中节气"] || row["prize"]).filter(Boolean);
+            
+            // 核心对齐：用云端表格的中奖名单，去过滤你的原始 15 个节气
+            prizesData = prizesData.filter(item => {
+                return !drawnList.some(drawn => drawn.includes(item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '')) || item.name.includes(drawn));
+            });
+            
+            // 直接更新你现在的转盘画面
+            if (typeof drawWheel === 'function') drawWheel();
+        }
+    }).catch(err => console.log("同步延迟: ", err));
+});
 
         // 验证名字并登录
         function startApp() {
