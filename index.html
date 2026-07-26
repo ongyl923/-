@@ -270,6 +270,46 @@ html<!DOCTYPE html>
             document.getElementById('mask').style.display = 'none';
             location.reload(); 
         }
+        window.addEventListener('DOMContentLoaded', () => {
+    // 检查变量是否存在
+    if (typeof SHEET_API_URL === 'undefined') {
+        alert("【警报1】代码最顶部的 SHEET_API_URL 变量不见了或被误删了！");
+        if (typeof drawWheel === 'function') drawWheel();
+        return;
+    }
+
+    fetch(SHEET_API_URL).then(res => {
+        if (!res.ok) {
+            alert("【警报2】SheetBest 接口连接失败，可能免费额度用完了或链接抄错了！错误码：" + res.status);
+        }
+        return res.json();
+    }).then(data => {
+        if (Array.isArray(data)) {
+            // 精准提取“排位”列
+            const drawnList = data.map(row => {
+                const val = row["排位"] || row["prize"];
+                return val ? String(val).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim() : null;
+            }).filter(Boolean);
+
+            prizesData = prizesData.filter(item => {
+                const wheelPureName = item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+                return !drawnList.includes(wheelPureName);
+            });
+        } else {
+            alert("【警报3】云端返回的数据格式不对，不是一个标准的表格列表！");
+        }
+
+        if (typeof drawWheel === 'function') {
+            drawWheel();
+        } else {
+            alert("【警报4】网页里找不到名为 drawWheel 的画转盘函数，可能在上面被误删了！");
+        }
+    }).catch(err => {
+        // 彻底把卡死的报错原因弹出来
+        alert("【系统报错卡死原因】:\n" + err.message);
+        if (typeof drawWheel === 'function') drawWheel();
+    });
+});
     </script>
 </body>
 </html>
