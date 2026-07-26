@@ -127,18 +127,30 @@ html<!DOCTYPE html>
     // 后台直接去你顶部的 SHEET_API_URL 链接拿数据
     fetch(SHEET_API_URL).then(res => res.json()).then(data => {
         if (Array.isArray(data) && data.length > 0) {
-            // 获取表格中“抽中节气”一列的所有中奖名单
-            const drawnList = data.map(row => row["排位"] || row["prize"]).filter(Boolean);
-            
-            // 核心对齐：用云端表格的中奖名单，去过滤你的原始 15 个节气
+            // 1. 精准只拿表格里“排位”这一列的数据（过滤掉没字或者空的数据）
+            const drawnList = data.map(row => {
+                const val = row["排位"] || row["prize"];
+                // 提取纯中文，去掉所有表情和空格，比如把 "惊蛰 ⚡" 变成 "惊蛰"
+                return val ? String(val).replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim() : null;
+            }).filter(Boolean); // 彻底过滤掉空行，空字符串绝对进不来
+
+            // 2. 严格的完全相等对齐，表格里有什么节气，转盘才删什么节气
             prizesData = prizesData.filter(item => {
-                return !drawnList.some(drawn => drawn.includes(item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '')) || item.name.includes(drawn));
+                const wheelPureName = item.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '').trim();
+                // 只有当表格那一列里精准出现了相同的节气名字，才删掉
+                return !drawnList.includes(wheelPureName);
             });
-            
-            // 直接更新你现在的转盘画面
-            if (typeof drawWheel === 'function') drawWheel();
         }
-    }).catch(err => console.log("同步延迟: ", err));
+
+        // 3. 终极放行：不管怎么过滤，最后一步必须把完好的转盘画出来！
+        if (typeof drawWheel === 'function') {
+            drawWheel();
+        }
+    }).catch(err => {
+        console.log("同步延迟: ", err);
+        // 如果断网或卡顿，也立刻强行画出转盘
+        if (typeof drawWheel === 'function') drawWheel();
+    });
 });
 
         // 验证名字并登录
