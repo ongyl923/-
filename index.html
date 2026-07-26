@@ -3,7 +3,7 @@ html<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 节气幸运大转盘 🎉</title>
+    <title>🎉 节气幸运大转盘 (Sheet实时同步版) 🎉</title>
     <style>
         body {
             background: linear-gradient(135deg, #1f1c2c, #928dab);
@@ -101,7 +101,7 @@ html<!DOCTYPE html>
     </div>
 
     <script>
-        // 可在此配置接收数据的 SheetBest 链接，如果不需要可以不管它
+        // ⚠️ 请在下面双引号里，精准填入你从 Sheet.best 获取的接口链接 ⚠️
         const SHEET_API_URL = "替换为你的SheetBest接口链接";
 
         let currentUserName = "";
@@ -148,7 +148,7 @@ html<!DOCTYPE html>
             drawWheel();
         }
 
-        // 使用 Canvas 纯原生底层绘制转盘（100%不依赖外部图片和插件）
+        // 底层绘制转盘
         function drawWheel() {
             const len = prizesData.length;
             if (len === 0) {
@@ -169,7 +169,6 @@ html<!DOCTYPE html>
                 ctx.lineTo(170, 170);
                 ctx.fill();
 
-                // 绘制扇区文字
                 ctx.save();
                 ctx.fillStyle = "#ffeb3b";
                 ctx.font = 'bold 12px sans-serif';
@@ -180,28 +179,26 @@ html<!DOCTYPE html>
             }
         }
 
-        // 点击按钮开始原生旋转动画
+        // 开始原生旋转动画
         function spinWheel() {
             if (isRotating) return;
             isRotating = true;
 
             const len = prizesData.length;
-            const targetIndex = Math.floor(Math.random() * len); // 随机选定一个中奖索引
+            const targetIndex = Math.floor(Math.random() * len); 
 
             const arc = 360 / len;
-            // 计算最终让指针（正上方减去偏移量）准确指向中奖扇区所需的角度值
             const targetAngle = 270 - (targetIndex * arc + arc / 2);
-            const totalRotation = 360 * 5 + targetAngle; // 多转5圈增强动画效果
+            const totalRotation = 360 * 5 + targetAngle; 
 
             let currentRotation = 0;
-            const duration = 3000; // 动画持续 3 秒
+            const duration = 3000; 
             const startTime = performance.now();
 
             function animate(now) {
                 const elapsed = now - startTime;
                 const progress = Math.min(elapsed / duration, 1);
                 
-                // 缓动算法：先快后慢
                 const easeOutValue = 1 - Math.pow(1 - progress, 3);
                 currentRotation = easeOutValue * totalRotation;
                 
@@ -211,38 +208,42 @@ html<!DOCTYPE html>
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // 动画结束后的处理逻辑
                     isRotating = false;
                     const winPrizeName = prizesData[targetIndex].name;
 
                     // 1. 本地设备防二次抽奖锁定
                     localStorage.setItem('has_drawn', 'true');
 
-                    // 2. 核心逻辑：直接从列表中无情剔除该选项并保存
+                    // 2. 核心逻辑：从列表中剔除该选项并保存
                     prizesData.splice(targetIndex, 1);
                     localStorage.setItem('saved_prizes', JSON.stringify(prizesData));
 
-                    // 3. 弹窗和上传数据
+                    // 3. 弹窗通知
                     document.getElementById('prize-text').innerText = winPrizeName;
                     document.getElementById('mask').style.display = 'flex';
+
+                    // 4. 实时静默上传到网络 Google 表格
                     uploadDataToSheet(currentUserName, winPrizeName);
                 }
             }
             requestAnimationFrame(animate);
         }
 
+        // 异步数据上传
         function uploadDataToSheet(name, prize) {
             if(!SHEET_API_URL || SHEET_API_URL.includes("替换为")) return;
             fetch(SHEET_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "姓名": name, "抽中节气": prize })
-            }).catch(err => console.log(err));
+            })
+            .then(res => console.log("数据成功同步至电子表格"))
+            .catch(err => console.error("同步失败: ", err));
         }
 
         function closePopup() {
             document.getElementById('mask').style.display = 'none';
-            location.reload(); // 自动刷新，下一个人进来直接显示剔除后的新轮盘
+            location.reload(); 
         }
     </script>
 </body>
