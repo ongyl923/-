@@ -235,7 +235,7 @@ html<!DOCTYPE html>
             fetch(SHEET_API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "姓名": name, "抽中节气": prize })
+                body: JSON.stringify({ "姓名": name, "排位": prize })
             })
             .then(res => console.log("数据成功同步至电子表格"))
             .catch(err => console.error("同步失败: ", err));
